@@ -3,6 +3,7 @@ from collections import Counter, defaultdict
 from multiprocessing import Pool
 import regex as re
 from tqdm.auto import tqdm
+from time import perf_counter
 
 from cs336_basics.pretokenization_example import find_chunk_boundaries  
 
@@ -40,7 +41,7 @@ def get_bp_freq_table(token_list):
 def _tokenize(text, special_tokens):
     if not special_tokens:
         return [m.group(0) for m in _PAT.finditer(text)]
-    specials_pattern = re.compile("|".join(special_tokens))
+    specials_pattern = re.compile("(" + "|".join(map(re.escape, special_tokens)) + ")")
     out = []
     parts = specials_pattern.split(text)
     for part in parts:
@@ -48,7 +49,6 @@ def _tokenize(text, special_tokens):
             continue
         if part not in special_tokens:
             out.extend(m.group(0) for m in _PAT.finditer(part))
-
     return out
 
 def _process_span(args):
@@ -166,7 +166,7 @@ def one_merging_step(bp_freq_table, token_freq_table, token_index, *, direction=
 
 
 
-def train_bpe(input_path, vocab_size, special_tokens, num_processes=1):
+def train_bpe(input_path, vocab_size, special_tokens, num_processes=-1):
     if num_processes in (-1, 0, None):
         num_processes = os.cpu_count() or 1
     if not isinstance(special_tokens, list):
@@ -176,6 +176,7 @@ def train_bpe(input_path, vocab_size, special_tokens, num_processes=1):
     bp_freq_table = Counter()      # {(b_i, b_{i+1}): count}
     token_index = defaultdict(set) # {(b_i, b_{i+1}): set[(token_bytes_tuple, i)]}
 
+    t0 = perf_counter()
     # Compute chunk boundaries
     with open(input_path, "rb") as f:
         boundaries = find_chunk_boundaries(f, num_processes, EOT_TOKEN)
@@ -196,6 +197,7 @@ def train_bpe(input_path, vocab_size, special_tokens, num_processes=1):
             bp_freq_table.update(cbp)
             for k, s in cidx.items():
                 token_index[k] |= s
+    t1 = perf_counter()
     # Merge loop
     vocab_bytes = [tok.encode("utf-8") for tok in special_tokens] + [bytes([i]) for i in range(256)]
     steps = max(0, vocab_size - len(vocab_bytes))
@@ -204,6 +206,9 @@ def train_bpe(input_path, vocab_size, special_tokens, num_processes=1):
         merges.append(merged_pair)
     vocab_bytes.extend([b"".join(m) for m in merges])
     vocab_dict = {tid: btok for tid, btok in enumerate(vocab_bytes)}
+    t2 = perf_counter()
+    
+    print(f"[profile] pretokenize: {t1 - t0:.3f}s, merges: {t2 - t1:.3f}s, total: {t2 - t0:.3f}s")
 
     return vocab_dict, merges
 
