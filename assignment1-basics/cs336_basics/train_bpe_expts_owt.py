@@ -3,14 +3,14 @@ import json
 from cs336_basics.train_bpe import train_bpe
 from tests.common import gpt2_bytes_to_unicode
 
-TRAIN_PATH = "data/TinyStoriesV2-GPT4-train.txt"
-VALID_PATH = "data/TinyStoriesV2-GPT4-valid.txt"
+TRAIN_PATH = "data/owt_train.txt"
+VALID_PATH = "data/owt_valid.txt"
 
-VOCAB_SIZE = 10_000
+VOCAB_SIZE = 32_000
 
 SPECIALS = ["<|endoftext|>"]
 
-CORPUS_NAME = "tinystories"
+CORPUS_NAME = "owt"
 BYTE_TO_UNICODE = gpt2_bytes_to_unicode()  # {0..255 -> printable Unicode}
 
 # [profile] pretokenize: 13.639s, merges: 39.243s, total: 52.882s
