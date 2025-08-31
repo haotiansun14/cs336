@@ -23,7 +23,7 @@ def bytes_to_token_str(b: bytes) -> str:
         return "".join(BYTE_TO_UNICODE[x] for x in b)
 
 if __name__ == "__main__":
-    vocab_dict, merges = train_bpe(TRAIN_PATH, VOCAB_SIZE, SPECIALS, num_processes=-1)
+    vocab_dict, merges = train_bpe(VALID_PATH, VOCAB_SIZE, SPECIALS, num_processes=-1)
     print(f"Vocabulary size: {len(vocab_dict)}")
     print(f"Merges: {merges[:20]}")
     

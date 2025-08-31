@@ -14,6 +14,7 @@ CORPUS_NAME = "tinystories"
 BYTE_TO_UNICODE = gpt2_bytes_to_unicode()  # {0..255 -> printable Unicode}
 
 # [profile] pretokenize: 13.639s, merges: 39.243s, total: 52.882s
+# Longest token:  accomplishment
 
 def bytes_to_token_str(b: bytes) -> str:
     """Try strict UTF-8; if it fails, map each raw byte via GPT-2's bijection."""
