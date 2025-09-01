@@ -38,16 +38,19 @@ def get_bp_freq_table(token_list):
             token_index[pair].add((btok, i))
     return bp_freq_table, token_index
 
-def _tokenize(text, special_tokens):
+def _tokenize(text, special_tokens, return_raw=False):
     if not special_tokens:
         return [m.group(0) for m in _PAT.finditer(text)]
+    special_tokens = sorted(set(special_tokens), key=len, reverse=True)
     specials_pattern = re.compile("(" + "|".join(map(re.escape, special_tokens)) + ")")
     out = []
     parts = specials_pattern.split(text)
     for part in parts:
         if not part:
             continue
-        if part not in special_tokens:
+        if part in special_tokens and return_raw:
+            out.append(part)
+        else:
             out.extend(m.group(0) for m in _PAT.finditer(part))
     return out
 
