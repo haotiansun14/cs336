@@ -48,8 +48,9 @@ def _tokenize(text, special_tokens, return_raw=False):
     for part in parts:
         if not part:
             continue
-        if part in special_tokens and return_raw:
-            out.append(part)
+        if part in special_tokens:
+            if return_raw:
+                out.append(part)
         else:
             out.extend(m.group(0) for m in _PAT.finditer(part))
     return out

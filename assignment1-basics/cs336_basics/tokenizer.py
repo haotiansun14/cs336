@@ -40,7 +40,10 @@ class Tokenizer:
         
         return cls(vocab, merges, special_tokens)
     
-    def _encode_to_ids(self, token):        
+    def _encode_to_ids(self, token):     
+        if isinstance(token, int):
+            return [token]
+               
         if not isinstance(token, list):
             token = list(token)
             
@@ -60,17 +63,20 @@ class Tokenizer:
         return ids
         
     
-    def encode(self, text, max_workers=1):
+    def encode(self, text, max_workers=-1):
         if not text:
             return []
         pre_tokens = _tokenize(text, list(self.special_tokens), return_raw=True)
         tokens = []
         for t in pre_tokens:
             if t in self.special_tokens:
-                tokens.append(self.vocab_to_ids.get(t.encode('utf-8')))
+                tok_id = self.vocab_to_ids.get(t.encode('utf-8'))
+                if tok_id is None:
+                    raise KeyError(f"Special token not in vocab: {t!r}")
+                tokens.append(tok_id)
             else:
                 tokens.append(word_to_byte_tuple(t))
-        if max_workers is None:
+        if max_workers is None or max_workers < 1:
             max_workers = os.cpu_count() or 1
         max_workers = min(max_workers, len(tokens))
         if max_workers <= 1:
